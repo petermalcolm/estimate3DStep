@@ -1,0 +1,44 @@
+<html>
+	<head>
+		<script type="text/javascript">
+			var estimate3D;
+		
+			function loadContentAfterScriptsLoad(node) {
+	        	estimate3D = new Estimate3D(node);
+	        	estimate3D.render();
+	        };
+			
+	        function loadContent(node) {
+		        /*
+		         * this loadScripts() function call will load the javascript imports
+		         * into this html file 
+		         */
+	        	scriptloader.loadScripts('estimate3D', document, node.id, eventManager);
+	        };
+
+	        /*
+	         * This is called when the student clicks on the save button below in the body
+	         */
+	        function save() {
+		        /*
+		         * calls the save function in estimate3D.js
+		         */
+				estimate3D.save();
+	        }
+		</script>
+	</head>
+
+	<body>
+		<!-- TODO create the html UI that the student will see when they visit the step -->
+		
+		<!-- the promptDiv, responseDiv, saveButtonDiv are not required, they are only provided as an example,
+			 you may delete all of these divs and create the body however you like -->
+		<div id='promptDiv'></div>
+		<div id='responseDiv'><textarea id='studentResponseTextArea' rows='2' cols='80'></textarea></div>
+		<div id='saveButtonDiv'><input type='button' value='Save' onclick='save()'></input></div>
+
+                <div id="viewer" style="width:400px;height:400px"></div>
+                <div id="debugDiv"><textarea id="debugArea" rows ='8' cols='80'></textarea></div>
+
+	</body>
+</html>

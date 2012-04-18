@@ -1,0 +1,29 @@
+Includes modifications to Tony Buser's Thingiview.js
+(https://github.com/tbuser/thingiview.js)
+to allow dynamic 3D display of STL file in WISEngineering and WISE4.
+
+This incorporates an estimation activity, where students estimate
+attributes (such as side-length, surface area, or volume) of the 
+shapes, using a reference.  In this case, the reference is the
+woman from Google Sketchup:
+http://sketchup.google.com/
+who happens to be roughly 5ft,6in tall.  She is included in the
+STL file and renders as part of the shape on screen.
+
+The estimation includes a estimate-error-bar, just as is used in
+the Estimation Calculator:
+http://teacherlink.org/estimate/
+This lets students know if an estimate is too high or too low,
+and provides an exact value if a student's estimate is close
+enough.
+
+This is a step-type, so the entire directory drops into:
+$CATALINA_HOME/webapps/vlewrapper/vle/node/
+and, with some minor modifications to 
+$CATALINA_HOME/webapps/vlewrapper/vle/node/setupNodes.js
+to include this path, the new step type will work.
+(there are still a few bugs to work out...)
+
+More info on customizeable step types for WISE4 / WISEngineering is here:
+https://github.com/WISE-Community/WISE-StepTypeCreator
+
