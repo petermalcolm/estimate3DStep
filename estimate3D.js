@@ -73,11 +73,17 @@ Estimate3D.prototype.render = function() {
         var posRect=new Image();
         
         negRect.onload = function (){
-            // code here to render the positive rectangle
+            // code here to render the negative rectangle
+    // STOPPED HERE -- THIS CODE DOES NOTHING SO FAR
+            // the goal is to draw these dynamically in the ErrorBox canvases
+            //$('div[name*="ErrorBox"]') // hopefully, a wrapped set of the canvas elements
         }
         posRect.onload = function (){
-            // code here to render the negative rectangle
+            // code here to render the positive rectangle
         }
+        
+        negRect.src = "imgs/blue_orange.jpg";
+        posRect.src = "imgs/orange_blue.jpg";
         
         // alert("number of aspects:" + this.content.aspects.length);
         // loop through the aspects of the figure that the user must estimate:
@@ -95,16 +101,35 @@ Estimate3D.prototype.render = function() {
                 // first create a div specifying the name of the aspect:
                 $('#estimationDiv').append(""
                     +"<div id ='" + aspectName + "Div'>"
-                    +"Estimate for: " + aspectName + "<br />"
-                    +"<input id ='" + aspectName + "Guess' type='text' /> <input id='" + aspectName + "Btn' type='button' value='OK' />"
+                    +"Estimate for: " + aspectName + "<br />"         // mini-prompt
+                    +"<input id ='" + aspectName + "Guess' type='text' />"// input text area
+                    // button, with the name attribute set to the aspectName for later lookup:
+                    +"<input id='" + aspectName + "Btn' name='" + aspectName + "' type='button' value='OK' />"
                     +"</div>"
                 ); // end of new div
                 
-                
-                var estiCanvas=document.createElement('canvas');
-                estiCanvas.width = 300;
+                // a little canvas for just the red rectangle and the line:
+                var estiCanvas=document.createElement('canvas'); // should be accessible through $('#'+aspectName+'Div > canvas')
+                estiCanvas.width = 300;                          
                 estiCanvas.height = 45;
+                // estiCanvas.setAttribute('zIndex', this.content.aspects.length + aspect);  // a high z-index so we can draw below later
+                estiCanvas.setAttribute('id', aspectName + 'ErrorBox');  // a high z-index so we can draw below later
+                // estiCanvas.setAttribute("style","position: absolute; left: 0; top: 0;");
                 var estiContext=estiCanvas.getContext('2d');
+                
+                
+                
+                estiContext.strokeStyle = '#f00'; // red box around +/-15% 
+                estiContext.lineWidth = 4;
+                estiContext.strokeRect(100,8,60,24);
+
+                estiContext.strokeStyle = '#000'; // black line at exact answer
+                estiContext.lineWidth = 3;
+                estiContext.moveTo(131,3);
+                estiContext.lineTo(131,38);
+                estiContext.stroke();
+
+                
                 $('#' + aspectName + 'Div').append(estiCanvas);
                 
             }
