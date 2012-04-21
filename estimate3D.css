@@ -1,3 +1,21 @@
+body {
+    font-family: Gill, Helvetica, sans-serif;
+}
 #promptDiv {
 	font-size:16px
+}
+#container {
+    
+}
+#threeDDiv {
+    float: left;
+    position: relative;
+    
+    width: 45%;
+}
+#estimationDiv {
+    float: right;
+    position: relative;
+    
+    width: 40%;
 }

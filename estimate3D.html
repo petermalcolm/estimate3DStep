@@ -33,12 +33,35 @@
 		
 		<!-- the promptDiv, responseDiv, saveButtonDiv are not required, they are only provided as an example,
 			 you may delete all of these divs and create the body however you like -->
-		<div id='promptDiv'></div>
-		<div id='responseDiv'><textarea id='studentResponseTextArea' rows='2' cols='80'></textarea></div>
-		<div id='saveButtonDiv'><input type='button' value='Save' onclick='save()'></input></div>
+                <!-- SVG: only 2px high -->
+                <svg xmlns='http://www.w3.org/2000/svg' version='1.1' height="0cm">
+                <defs>
+                  <linearGradient id='gradneg' x1='0%' y1='0%' x2='100%' y2='0%'>
+                    <stop offset='0%' style='stop-color:rgb(100,100,255);stop-opacity:1' />
+                    <stop offset='100%' style='stop-color:rgb(255,128,0);stop-opacity:1' />
+                  </linearGradient>
+                  <linearGradient id='gradpos' x1='0%' y1='0%' x2='100%' y2='0%'>
+                    <stop offset='0%' style='stop-color:rgb(255,128,0);stop-opacity:1' />
+                    <stop offset='100%' style='stop-color:rgb(100,100,255);stop-opacity:1' />
+                  </linearGradient>
+                </defs>
+                </svg>
+                
+                <div id="container">
+                    <div id="threeDDiv">
+                        <div id='promptDiv'></div>
+                        <div id='responseDiv'><textarea id='studentResponseTextArea' rows='2' cols='40'></textarea></div>
+                        <div id='saveButtonDiv'><input type='button' value='Save' onclick='save()'></input></div>
 
-                <div id="viewer" style="width:400px;height:400px"></div>
-                <div id="debugDiv"><textarea id="debugArea" rows ='8' cols='80'></textarea></div>
+                        <div id="viewer" style="width:400px;height:400px"></div>
+                        <div id="debugDiv"><textarea id="debugArea" rows ='8' cols='40'></textarea></div>
+                    </div>
 
+                    <div id="estimationDiv">
+                        <p>Please estimate the volume of this shape.<br />
+                        The woman next to the shape is 5.5 feet tall (5 feet, 6 inches). <br />
+                        NOTE: Estimate to the nearest whole number (feet or cubic feet).</p>
+                    </div>
+                </div>
 	</body>
 </html>
