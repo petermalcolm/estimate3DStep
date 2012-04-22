@@ -71,24 +71,45 @@ Estimate3D.prototype.render = function() {
         
         var negRect=new Image();
         var posRect=new Image();
+        var aspect;
+        var that = this;  // alias the estimate3D object for reference in callbacks
         
         negRect.onload = function (){
             // code here to render the negative rectangle
-    // STOPPED HERE -- THIS CODE DOES NOTHING SO FAR
-            // the goal is to draw these dynamically in the ErrorBox canvases
-            //$('div[name*="ErrorBox"]') // hopefully, a wrapped set of the canvas elements
+            // these draw dynamically in the ErrorBox canvases
+            var aspectLocal;
+            var aspectChild;
+            for (aspectLocal in that.content.aspects) {
+                if(that.content.aspects[aspectLocal][0] !== undefined){
+                    aspectChild = that.content.aspects[aspectLocal][0];  // alias the aspect name
+                    var canvasLocal = document.getElementById(aspectChild+'ErrorBox');
+                    var contextLocal = canvasLocal.getContext('2d');
+                    contextLocal.drawImage(this,5,10,125,20);
+                }
+            }
         }
+        
         posRect.onload = function (){
-            // code here to render the positive rectangle
+            // code here to render the negative rectangle
+            // these draw dynamically in the ErrorBox canvases
+            var aspectLocal;
+            var aspectChild;
+            for (aspectLocal in that.content.aspects) {
+                if(that.content.aspects[aspectLocal][0] !== undefined){
+                    aspectChild = that.content.aspects[aspectLocal][0];  // alias the aspect name
+                    var canvasLocal = document.getElementById(aspectChild+'ErrorBox');
+                    var contextLocal = canvasLocal.getContext('2d');
+                    contextLocal.drawImage(this,132,10,125,20);
+                }
+            }
         }
         
         negRect.src = "imgs/blue_orange.jpg";
         posRect.src = "imgs/orange_blue.jpg";
         
+        
         // alert("number of aspects:" + this.content.aspects.length);
         // loop through the aspects of the figure that the user must estimate:
-        
-        var aspect;
         
         for (aspect in this.content.aspects) {
             if(this.content.aspects[aspect][0] !== undefined){
@@ -108,6 +129,11 @@ Estimate3D.prototype.render = function() {
                     +"</div>"
                 ); // end of new div
                 
+                // set button action
+                $('#' + aspectName + 'Btn').bind('click', function() {
+                    that.showError(this);
+                });
+                
                 // a little canvas for just the red rectangle and the line:
                 var estiCanvas=document.createElement('canvas'); // should be accessible through $('#'+aspectName+'Div > canvas')
                 estiCanvas.width = 300;                          
@@ -116,9 +142,6 @@ Estimate3D.prototype.render = function() {
                 estiCanvas.setAttribute('id', aspectName + 'ErrorBox');  // a high z-index so we can draw below later
                 // estiCanvas.setAttribute("style","position: absolute; left: 0; top: 0;");
                 var estiContext=estiCanvas.getContext('2d');
-                
-                
-                
                 estiContext.strokeStyle = '#f00'; // red box around +/-15% 
                 estiContext.lineWidth = 4;
                 estiContext.strokeRect(100,8,60,24);
@@ -129,35 +152,33 @@ Estimate3D.prototype.render = function() {
                 estiContext.lineTo(131,38);
                 estiContext.stroke();
 
+                $('#' + aspectName + 'Div').append(estiCanvas);  //  add the canvas below the inputs
                 
-                $('#' + aspectName + 'Div').append(estiCanvas);
-                
-            }
-        }
-        
-        
-        /*
-        $('#estimationDiv').append(
-
-        ""
-        +"<img width='125' height='20' src='imgs/blue_orange.jpg' clip-path='url(#negClip)' />"
-        +"<img width='125' height='20' src='imgs/orange_blue.jpg' clip-path='url(#negClip)' />"
-        
-        +"<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='40px'>"
-
-
-        // the line representing the correct region - note stroke is centered at x-coord
-        +"<line x1 = '131' y1 = '3' x2 = '131' y2 = '38' stroke = 'black' stroke-width = '3'/>"
-
-        // the red rectangle around +/-15%:
-        +"<rect id='errorRect' x='100' y='8' width='60' height='24' fill-opacity='0' stroke='red' stroke-width='4' />"
-
-
-        +"</svg>"
-        ); // end definition of gradientId
-        */
+                $('#' + aspectName + 'Div').append("<div id='"+aspectName+"Show'><p>&nbsp;</p></div>");  // show exact if they're close
+            } // end of aspect loop (if)
+        } // end of aspect loop (for)
         
 }; // end of render()
+
+/**
+ * This function shows the student an error-bar for his or her estimate
+ * Optionally, it also shows 
+ */ 
+
+Estimate3D.prototype.showError = function(caller) {
+    var srcAspect = caller.id.substr(0,caller.id.length - 3);              // a string with the name of the aspect
+    var inputText = $('#' + srcAspect + 'Guess').attr('value');
+    if(inputText == "") return;                                             // skip it if there's nothing doing
+    var inputNum = parseFloat(inputText);                                   // convert to float, inputNum
+    var actualNum = parseFloat(this.aspectList[srcAspect]);                      // and the actual, actualNum
+    var error = (inputNum - actualNum)/actualNum;                           // error
+    // alert('error is: ' + error);
+    if(error > -0.15 && error < 0.15) {
+        $('#'+srcAspect+'Show').html('Close enough!  The actual '+ srcAspect +' is: ' + actualNum + '<br /><br /><br />');
+    } else {
+        $('#'+srcAspect+'Show').html('<p>&nbsp;</p>');
+    }
+}
 
 /**
  * This function retrieves the latest student work
