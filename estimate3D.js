@@ -8,11 +8,20 @@ function Estimate3D(node) {
 	this.view = node.view;
 	this.content = node.getContent().getContentJSON();
 	
-        this.aspectList = {};    // a pseudo-assoc.array for the estimation aspects
-                                 // aspects are, length, width, height, etc...
+        this.aspectList = {};     // a pseudo-assoc.array for the estimation aspects
+                                  // aspects are, length, width, height, etc...
+                                  // lookup by name, eg aspectName['length'] = '11.0'
+                                 
+        this.negRect=new Image();
+        this.posRect=new Image();
+
         
-        this.click3Darray = [];  // the array that holds the user's clicks on the object
+        this.click3Darray = [];   // the array that holds the user's clicks on the object
+
+        this.estimateArray = [];  // the array that holds the user's estimates
         
+        this.explanation = "";    // the user's explanation of process
+
 	if(node.studentWork != null) {
 		this.states = node.studentWork; 
 	} else {
@@ -61,7 +70,10 @@ Estimate3D.prototype.render = function() {
         thingiview.initScene();
         // thingiview.setShowPlane(true);
         // thingiview.loadArray(eval(document.getElementById('json').value));
-        thingiview.loadArray(eval(this.content.figure));      
+        thingiview.loadArray(eval(this.content.figure)); 
+        thingiview.setRotation(false);
+        thingiview.setObjectColor('#CDFECD');       // green shapes
+        thingiview.setBackgroundColor('#ffffff');   // white background
                 
         ///////////////// CODE FOR ESTI-GRAPHS ////////////////////////////
         // The idea is to create a lot of divs.
@@ -69,12 +81,12 @@ Estimate3D.prototype.render = function() {
         // Each canvas will hold the estimation area for a different aspect
         // of the figure on the screen
         
-        var negRect=new Image();
-        var posRect=new Image();
         var aspect;
         var that = this;  // alias the estimate3D object for reference in callbacks
         
-        negRect.onload = function (){
+        // TO DO - get rid of the onload functions.  Assume they have loaded by the time the user starts interaction
+        
+        this.negRect.onload = function (){
             // code here to render the negative rectangle
             // these draw dynamically in the ErrorBox canvases
             var aspectLocal;
@@ -82,14 +94,14 @@ Estimate3D.prototype.render = function() {
             for (aspectLocal in that.content.aspects) {
                 if(that.content.aspects[aspectLocal][0] !== undefined){
                     aspectChild = that.content.aspects[aspectLocal][0];  // alias the aspect name
-                    var canvasLocal = document.getElementById(aspectChild+'ErrorBox');
-                    var contextLocal = canvasLocal.getContext('2d');
-                    contextLocal.drawImage(this,5,10,125,20);
+                    // var canvasLocal = document.getElementById(aspectChild+'ErrorBox');
+                    // var contextLocal = canvasLocal.getContext('2d');
+                    // contextLocal.drawImage(this,5,10,125,20);
                 }
             }
         }
         
-        posRect.onload = function (){
+        this.posRect.onload = function (){
             // code here to render the negative rectangle
             // these draw dynamically in the ErrorBox canvases
             var aspectLocal;
@@ -97,15 +109,15 @@ Estimate3D.prototype.render = function() {
             for (aspectLocal in that.content.aspects) {
                 if(that.content.aspects[aspectLocal][0] !== undefined){
                     aspectChild = that.content.aspects[aspectLocal][0];  // alias the aspect name
-                    var canvasLocal = document.getElementById(aspectChild+'ErrorBox');
-                    var contextLocal = canvasLocal.getContext('2d');
-                    contextLocal.drawImage(this,132,10,125,20);
+                    // var canvasLocal = document.getElementById(aspectChild+'ErrorBox');
+                    // var contextLocal = canvasLocal.getContext('2d');
+                    // contextLocal.drawImage(this,132,10,125,20);
                 }
             }
         }
         
-        negRect.src = "imgs/blue_orange.jpg";
-        posRect.src = "imgs/orange_blue.jpg";
+        this.negRect.src = "imgs/blue_orange.jpg";
+        this.posRect.src = "imgs/orange_blue.jpg";
         
         
         // alert("number of aspects:" + this.content.aspects.length);
@@ -116,13 +128,20 @@ Estimate3D.prototype.render = function() {
                 // alert(this.content.aspects[aspect][0]);
                 var aspectName = this.content.aspects[aspect][0];
                 var aspectValue = this.content.aspects[aspect][1];
+                var aspectUnit = this.content.aspects[aspect][2];
                 
-                this.aspectList[aspectName]=aspectValue;        // add to the list for later lookup
+                this.aspectList[aspectName]=aspectValue;        // add value to the list for later lookup
+                this.aspectList[aspectName+'Unit']=aspectUnit;  // add unit as <aspect>Unit for lookup
+                var required = "";
+                var substitute = aspectName;
+                if(aspectName=='volume'){ required = '* '; }
+                if(aspectName=='pi'){ substitute = '&pi;'; }
                 
                 // first create a div specifying the name of the aspect:
                 $('#estimationDiv').append(""
                     +"<div id ='" + aspectName + "Div'>"
-                    +"Estimate for: " + aspectName + "<br />"         // mini-prompt
+                    + required
+                    +"Estimate for: " + substitute + "<br />"         // mini-prompt
                     +"<input id ='" + aspectName + "Guess' type='text' />"// input text area
                     // button, with the name attribute set to the aspectName for later lookup:
                     +"<input id='" + aspectName + "Btn' name='" + aspectName + "' type='button' value='OK' />"
@@ -144,7 +163,7 @@ Estimate3D.prototype.render = function() {
                 var estiContext=estiCanvas.getContext('2d');
                 estiContext.strokeStyle = '#f00'; // red box around +/-15% 
                 estiContext.lineWidth = 4;
-                estiContext.strokeRect(100,8,60,24);
+                estiContext.strokeRect(113,8,36,24);
 
                 estiContext.strokeStyle = '#000'; // black line at exact answer
                 estiContext.lineWidth = 3;
@@ -158,6 +177,10 @@ Estimate3D.prototype.render = function() {
             } // end of aspect loop (if)
         } // end of aspect loop (for)
         
+        $('#estimationDiv').append("<div id='explainDiv'><p>* Please explain in a few words how you estimated this volume</p>"
+                                   + "<textarea id='studentResponseTextArea' rows='3' cols='40'></textarea>"
+                                   + "</div><br />");  // provide a place for explanation
+        
 }; // end of render()
 
 /**
@@ -166,18 +189,49 @@ Estimate3D.prototype.render = function() {
  */ 
 
 Estimate3D.prototype.showError = function(caller) {
-    var srcAspect = caller.id.substr(0,caller.id.length - 3);              // a string with the name of the aspect
+    var srcAspect = caller.id.substr(0,caller.id.length - 3);               // a string with the name of the aspect
     var inputText = $('#' + srcAspect + 'Guess').attr('value');
     if(inputText == "") return;                                             // skip it if there's nothing doing
     var inputNum = parseFloat(inputText);                                   // convert to float, inputNum
-    var actualNum = parseFloat(this.aspectList[srcAspect]);                      // and the actual, actualNum
+    var actualNum = parseFloat(this.aspectList[srcAspect]);                 // and the actual, actualNum
+    var canvasHandle = document.getElementById(srcAspect+'ErrorBox');
+    var contextHandle = canvasHandle.getContext('2d');
+    
     var error = (inputNum - actualNum)/actualNum;                           // error
-    // alert('error is: ' + error);
-    if(error > -0.15 && error < 0.15) {
-        $('#'+srcAspect+'Show').html('Close enough!  The actual '+ srcAspect +' is: ' + actualNum + '<br /><br /><br />');
+    if(error == 0) {
+        $('#'+srcAspect+'Show').html('Exactly!  The actual '+ srcAspect +' is: ' + actualNum + ' ' + this.aspectList[srcAspect+'Unit'] + '.<br /><br /><br />');
+        contextHandle.fillStyle = "rgb(255,255,255)";                       // white-over some
+        contextHandle.fillRect(132,10,125,20);                              // entire positive region hidden
+        contextHandle.fillRect(5,10,125,20);                                // entire negative region hidden
+    }else if(error > -0.15 && error < 0.15) {                               // code to output the actual value if they're close:
+        $('#'+srcAspect+'Show').html('Close enough!  The actual '+ srcAspect +' is: ' + actualNum + ' ' + this.aspectList[srcAspect+'Unit'] +  '.<br /><br /><br />');
     } else {
         $('#'+srcAspect+'Show').html('<p>&nbsp;</p>');
     }
+                                                                            // code to show the bar:
+    if(error < -1.0) { error = -1.0; }                                      // sanity check bound to +/-100%
+    if(error > 1.0) { error = 1.0; }                                        // sanity check bound to +/-100%
+    
+    if(error < 0.0) {                                                       // negative error
+        contextHandle.drawImage(this.negRect,5,10,125,20);
+        contextHandle.fillStyle = "rgb(255,255,255)";                       // white-over some
+        contextHandle.fillRect(132,10,125,20);                              // entire positive region hidden
+        contextHandle.fillRect(5, 10, (1.0+error)*125.0, 20);
+    } else if (error > 0.0) {                                               // positive error
+        contextHandle.drawImage(this.posRect,132,10,125,20);
+        contextHandle.fillStyle = "rgb(255,255,255)";                       // white-over some
+        contextHandle.fillRect(5,10,125,20);                                // entire negative region hidden
+        contextHandle.fillRect(132+error*125.0, 10, (1.0-error)*125.0, 20);
+    }
+    contextHandle.strokeStyle = '#f00';                                     // redraw red box around +/-15% 
+    contextHandle.lineWidth = 4;
+    contextHandle.strokeRect(113,8,36,24);
+
+    contextHandle.strokeStyle = '#000';                                     // redraw black line at exact answer
+    contextHandle.lineWidth = 3;
+    contextHandle.moveTo(131,3);
+    contextHandle.lineTo(131,38);
+    contextHandle.stroke();
 }
 
 /**
