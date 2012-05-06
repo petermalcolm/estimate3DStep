@@ -39,6 +39,13 @@ Estimate3D.prototype.append3Dclick = function(xzPair) {
         this.click3Darray.push(xzPair);
 }
 
+Estimate3D.prototype.appendEstimate = function(estimateFor, error) {
+    var aspectLen = estimateFor.length;
+    var abbrev = estimateFor.substr(0,1) + estimateFor.substr(aspectLen -1, 1);     // abbreviate to first and last letter
+    // alert('Recording estimate for: '+ abbrev + ' as ' + error + ' error.');
+    this.estimateArray.push([abbrev,error]);
+}
+
 /**
  * This function renders everything the student sees when they visit the step.
  * This includes setting up the html ui elements as well as reloading any
@@ -73,6 +80,7 @@ Estimate3D.prototype.render = function() {
         thingiview.loadArray(eval(this.content.figure)); 
         thingiview.setRotation(false);
         thingiview.setObjectColor('#CDFECD');       // green shapes
+        // thingiview.setObjectColor('#ffffff');       // white shapes
         thingiview.setBackgroundColor('#ffffff');   // white background
                 
         ///////////////// CODE FOR ESTI-GRAPHS ////////////////////////////
@@ -189,7 +197,7 @@ Estimate3D.prototype.render = function() {
  */ 
 
 Estimate3D.prototype.showError = function(caller) {
-    var srcAspect = caller.id.substr(0,caller.id.length - 3);               // a string with the name of the aspect
+    var srcAspect = caller.id.substr(0,caller.id.length - 3);               // a string with the name of the aspect (3 is 'Btn')
     var inputText = $('#' + srcAspect + 'Guess').attr('value');
     if(inputText == "") return;                                             // skip it if there's nothing doing
     var inputNum = parseFloat(inputText);                                   // convert to float, inputNum
@@ -198,7 +206,9 @@ Estimate3D.prototype.showError = function(caller) {
     var contextHandle = canvasHandle.getContext('2d');
     
     var error = (inputNum - actualNum)/actualNum;                           // error
-    if(error == 0) {
+    this.appendEstimate(srcAspect, error);                                       // method call to add to state for saving
+    
+    if(error == 0) {                                                        // code to say they got it
         $('#'+srcAspect+'Show').html('Exactly!  The actual '+ srcAspect +' is: ' + actualNum + ' ' + this.aspectList[srcAspect+'Unit'] + '.<br /><br /><br />');
         contextHandle.fillStyle = "rgb(255,255,255)";                       // white-over some
         contextHandle.fillRect(132,10,125,20);                              // entire positive region hidden
@@ -270,7 +280,7 @@ Estimate3D.prototype.save = function() {
 	 * just submitted
 	 */
         
-	var estimate3DState = new Estimate3DState(response, estimate3D.click3Darray);
+	var estimate3DState = new Estimate3DState(response, estimate3D.click3Darray, estimate3D.estimateArray);
 	
 	/*
 	 * fire the event to push this state to the global view.states object.

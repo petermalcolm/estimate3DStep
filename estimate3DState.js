@@ -7,13 +7,18 @@
  * is just used as an example. you can add any variables that will help you 
  * represent the student's work for your step type.
  */
-function Estimate3DState(response, click3Darray) {
+function Estimate3DState(response, click3Darray, estimateArray) {
         //an array that stores the clicks for rotating the shape
         this.click3Darray = [];
+        this.estimateArray = [];
     
         if(click3Darray != null) {
             // set the array
             this.click3Darray = click3Darray;
+        }
+        
+        if(estimateArray != null) {
+            this.estimateArray = estimateArray;
         }
     
 	//the text response the student wrote
